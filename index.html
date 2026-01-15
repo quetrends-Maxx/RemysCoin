@@ -2,14 +2,14 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Interactive Digital Coin</title>
+    <title>Interactive Digital Coin - Lord Remys</title>
     <style>
         html, body { overflow: hidden; width: 100%; height: 100%; margin: 0; padding: 0; }
         #renderCanvas { width: 100%; height: 100%; touch-action: none; }
-        #email-form { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; }
+        #email-form { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; z-index: 10; }
     </style>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <!-- Replace YOUR_TRACKING_ID with your Google Analytics tracking ID -->
+    <!-- Google Analytics - replace YOUR_TRACKING_ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_TRACKING_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -20,7 +20,6 @@
 </head>
 <body>
     <canvas id="renderCanvas"></canvas>
-    <!-- Email collector form (replace https://formspree.io/f/yourid with your Formspree endpoint) -->
     <div id="email-form">
         <form action="https://formspree.io/f/yourid" method="POST">
             <label>Subscribe for updates:</label><br>
@@ -28,6 +27,7 @@
             <button type="submit">Submit</button>
         </form>
     </div>
+
     <script type="text/javascript">
         var canvas = document.getElementById("renderCanvas");
         var engine = new BABYLON.Engine(canvas, true);
@@ -35,77 +35,69 @@
         function createScene() {
             var scene = new BABYLON.Scene(engine);
 
-            // Reliable environment (softer lighting to reduce strong spots)
+            // Stronger, even HDR environment lighting (no dark sides)
             scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
-            scene.environmentIntensity = 1.0;  // Lowered for even shine, less spotlight effect
+            scene.environmentIntensity = 1.8;  // Boosted for full shine on both faces
 
-            // Balanced lighting: Top and bottom hemispheric lights for even illumination on both sides
-            var topLight = new BABYLON.HemisphericLight("topLight", new BABYLON.Vector3(0, 1, 0), scene);
-            topLight.intensity = 0.7;
-            topLight.diffuse = new BABYLON.Color3(1, 1, 1);
-            topLight.specular = new BABYLON.Color3(0.4, 0.4, 0.4);  // Reduced specular to tone down strong highlights
+            // Subtle front directional light to lift shadows without hot spots
+            var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0.5, -0.5, -1), scene);
+            dirLight.intensity = 0.9;
+            dirLight.diffuse = new BABYLON.Color3(1, 0.98, 0.9);  // Warm gold tint
+            dirLight.specular = new BABYLON.Color3(0.6, 0.6, 0.6);
 
-            var bottomLight = new BABYLON.HemisphericLight("bottomLight", new BABYLON.Vector3(0, -1, 0), scene);
-            bottomLight.intensity = 0.7;
-            bottomLight.diffuse = new BABYLON.Color3(1, 1, 1);
-            bottomLight.specular = new BABYLON.Color3(0.4, 0.4, 0.4);
-
-            // Interactive camera
+            // Camera
             var camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 6, BABYLON.Vector3.Zero(), scene);
             camera.attachControl(canvas, true);
             camera.lowerRadiusLimit = 3;
             camera.upperRadiusLimit = 12;
 
-            // Coin group
+            // Coin container
             var coin = new BABYLON.TransformNode("coin", scene);
 
-            // Side (reeded edge cylinder)
+            // Reeded edge (vertical grooves: across thickness)
             var side = BABYLON.MeshBuilder.CreateCylinder("side", {height: 0.12, diameter: 4, tessellation: 128, cap: BABYLON.Mesh.NO_CAP}, scene);
             var sideMat = new BABYLON.PBRMaterial("sideMat", scene);
-            sideMat.albedoColor = new BABYLON.Color3(0.91, 0.75, 0.48);  // Gold base
+            sideMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Brighter gold
             sideMat.metallic = 1.0;
-            sideMat.roughness = 0.15;  // Slightly higher roughness for softer shine
+            sideMat.roughness = 0.12;
             sideMat.bumpTexture = new BABYLON.Texture("edge_normal.png", scene);
-            sideMat.bumpTexture.rotation = Math.PI / 2;  // Rotate texture 90° to align grooves vertically (across front-to-back)
-            sideMat.bumpTexture.uScale = 1;  // Fine-tune repeat: low u for along circumference
-            sideMat.bumpTexture.vScale = 64;  // High v for many grooves along height (vertical lines)
-            sideMat.bumpTexture.level = 0.6;
+            sideMat.bumpTexture.rotation = Math.PI / 2;         // 90° rotation → vertical ridges
+            sideMat.bumpTexture.uScale = 1.0;                   // Repeat around circumference
+            sideMat.bumpTexture.vScale = 80;                    // Dense vertical lines along height
+            sideMat.bumpTexture.level = 1.0;                    // Stronger bump for visible reeding
             side.material = sideMat;
             side.parent = coin;
 
-            // Front face (assuming this is the "MEMORABLE 60th CELEBRATION" side)
-            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.95, tessellation: 128}, scene);  // Slightly smaller radius to fit image without black borders
+            // Front face (readable, full coverage, gold fill)
+            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.92, tessellation: 128}, scene);
             var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
             frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
-            frontMat.albedoTexture.uScale = -1;  // Horizontal flip if needed for readable text
-            // frontMat.albedoTexture.vScale = -1;  // Uncomment if upside-down
-            frontMat.albedoColor = new BABYLON.Color3(0.91, 0.75, 0.48);  // Gold base color to fill any black/transparent areas
+            frontMat.albedoTexture.uScale = -1;                 // Horizontal flip if needed (keep or remove based on current look)
+            frontMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Gold to eliminate black borders
             frontMat.metallic = 1.0;
-            frontMat.roughness = 0.2;
+            frontMat.roughness = 0.18;
             frontMat.backFaceCulling = false;
             front.material = frontMat;
             front.position.y = 0.06;
             front.rotation.x = Math.PI / 2;
-            // front.rotation.z = Math.PI;  // Uncomment to rotate 180° if orientation wrong
             front.parent = coin;
 
-            // Back face (assuming this is the "OLAWALE AHMED ANIFOWOSE 2025" side)
-            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.95, tessellation: 128}, scene);  // Slightly smaller to fit image
+            // Back face (readable, full coverage, gold fill)
+            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.92, tessellation: 128}, scene);
             var backMat = new BABYLON.PBRMaterial("backMat", scene);
             backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
-            backMat.albedoTexture.uScale = -1;  // Horizontal flip for readable text (not reversed)
-            backMat.albedoTexture.vScale = -1;  // Vertical flip to correct upside-down orientation
-            backMat.albedoColor = new BABYLON.Color3(0.91, 0.75, 0.48);  // Gold base to cover black areas
+            backMat.albedoTexture.uScale = -1;                  // Flip horizontal
+            backMat.albedoTexture.vScale = -1;                  // Flip vertical if upside-down
+            backMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Gold fill no black
             backMat.metallic = 1.0;
-            backMat.roughness = 0.2;
+            backMat.roughness = 0.18;
             backMat.backFaceCulling = false;
             back.material = backMat;
             back.position.y = -0.06;
             back.rotation.x = Math.PI / 2;
-            // back.rotation.z = Math.PI;  // Uncomment to rotate 180° if still misaligned
             back.parent = coin;
 
-            // Auto-spin (only when not interacting)
+            // Gentle auto-spin
             var spinSpeed = 0.4;
             scene.registerBeforeRender(function () {
                 if (!camera.inertialAlphaOffset && !camera.inertialBetaOffset && !camera.inertialRadiusOffset) {
@@ -122,6 +114,3 @@
     </script>
 </body>
 </html>
-
-
-
