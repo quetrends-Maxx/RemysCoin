@@ -62,7 +62,7 @@
             // Front face
             var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 2, tessellation: 128}, scene);
             var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
-            frontMat.albedoTexture = new BABYLON.Texture("front.png", scene);
+            frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
             frontMat.metallic = 1.0;
             frontMat.roughness = 0.2;
             front.material = frontMat;
@@ -73,7 +73,7 @@
             // Back face (flip rotation if texture appears mirrored)
             var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 2, tessellation: 128}, scene);
             var backMat = new BABYLON.PBRMaterial("backMat", scene);
-            backMat.albedoTexture = new BABYLON.Texture("back.png", scene);
+            backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
             // If back texture is upside-down or mirrored, uncomment: backMat.albedoTexture.vScale = -1;
             backMat.metallic = 1.0;
             backMat.roughness = 0.2;
@@ -90,4 +90,5 @@
         window.addEventListener("resize", function () { engine.resize(); });
     </script>
 </body>
+
 </htm
