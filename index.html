@@ -9,7 +9,7 @@
         #email-form { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; z-index: 10; }
     </style>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <!-- Google Analytics - replace YOUR_TRACKING_ID -->
+    <!-- Replace YOUR_TRACKING_ID with your Google Analytics tracking ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=YOUR_TRACKING_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -20,6 +20,7 @@
 </head>
 <body>
     <canvas id="renderCanvas"></canvas>
+    <!-- Email collector form (replace with your Formspree endpoint) -->
     <div id="email-form">
         <form action="https://formspree.io/f/yourid" method="POST">
             <label>Subscribe for updates:</label><br>
@@ -27,7 +28,6 @@
             <button type="submit">Submit</button>
         </form>
     </div>
-
     <script type="text/javascript">
         var canvas = document.getElementById("renderCanvas");
         var engine = new BABYLON.Engine(canvas, true);
@@ -35,14 +35,13 @@
         function createScene() {
             var scene = new BABYLON.Scene(engine);
 
-            // Stronger, even HDR environment lighting (no dark sides)
+            // Lighting kept exactly as in your base code
             scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
-            scene.environmentIntensity = 1.8;  // Boosted for full shine on both faces
+            scene.environmentIntensity = 1.8;
 
-            // Subtle front directional light to lift shadows without hot spots
             var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0.5, -0.5, -1), scene);
             dirLight.intensity = 0.9;
-            dirLight.diffuse = new BABYLON.Color3(1, 0.98, 0.9);  // Warm gold tint
+            dirLight.diffuse = new BABYLON.Color3(1, 0.98, 0.9); // Warm gold tint
             dirLight.specular = new BABYLON.Color3(0.6, 0.6, 0.6);
 
             // Camera
@@ -54,26 +53,27 @@
             // Coin container
             var coin = new BABYLON.TransformNode("coin", scene);
 
-            // Reeded edge (vertical grooves: across thickness)
+            // Reeded edge - boosted for visibility (vertical grooves)
             var side = BABYLON.MeshBuilder.CreateCylinder("side", {height: 0.12, diameter: 4, tessellation: 128, cap: BABYLON.Mesh.NO_CAP}, scene);
             var sideMat = new BABYLON.PBRMaterial("sideMat", scene);
-            sideMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Brighter gold
+            sideMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);
             sideMat.metallic = 1.0;
             sideMat.roughness = 0.12;
+            sideMat.emissiveColor = new BABYLON.Color3(0.04, 0.03, 0.01); // Tiny glow to help ridges catch light
             sideMat.bumpTexture = new BABYLON.Texture("edge_normal.png", scene);
-            sideMat.bumpTexture.rotation = Math.PI / 2;         // 90° rotation → vertical ridges
-            sideMat.bumpTexture.uScale = 1.0;                   // Repeat around circumference
-            sideMat.bumpTexture.vScale = 80;                    // Dense vertical lines along height
-            sideMat.bumpTexture.level = 1.0;                    // Stronger bump for visible reeding
+            sideMat.bumpTexture.rotation = Math.PI / 2; // 90° for vertical ridges
+            sideMat.bumpTexture.uScale = 0.8; // Fewer repeats around the circle
+            sideMat.bumpTexture.vScale = 100; // Dense vertical lines along height/thickness
+            sideMat.bumpTexture.level = 1.8; // Much stronger bump → should make grooves clearly visible now
             side.material = sideMat;
             side.parent = coin;
 
-            // Front face (readable, full coverage, gold fill)
-            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.92, tessellation: 128}, scene);
+            // Front face - tighter radius + strong gold fallback to kill black borders
+            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.90, tessellation: 128}, scene);
             var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
             frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
-            frontMat.albedoTexture.uScale = -1;                 // Horizontal flip if needed (keep or remove based on current look)
-            frontMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Gold to eliminate black borders
+            frontMat.albedoTexture.uScale = -1;
+            frontMat.albedoColor = new BABYLON.Color3(0.98, 0.85, 0.60); // Brighter/warmer gold fill
             frontMat.metallic = 1.0;
             frontMat.roughness = 0.18;
             frontMat.backFaceCulling = false;
@@ -82,13 +82,13 @@
             front.rotation.x = Math.PI / 2;
             front.parent = coin;
 
-            // Back face (readable, full coverage, gold fill)
-            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.92, tessellation: 128}, scene);
+            // Back face - same fixes
+            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.90, tessellation: 128}, scene);
             var backMat = new BABYLON.PBRMaterial("backMat", scene);
             backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
-            backMat.albedoTexture.uScale = -1;                  // Flip horizontal
-            backMat.albedoTexture.vScale = -1;                  // Flip vertical if upside-down
-            backMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);  // Gold fill no black
+            backMat.albedoTexture.uScale = -1;
+            backMat.albedoTexture.vScale = -1;
+            backMat.albedoColor = new BABYLON.Color3(0.98, 0.85, 0.60); // Same strong gold fill
             backMat.metallic = 1.0;
             backMat.roughness = 0.18;
             backMat.backFaceCulling = false;
@@ -97,7 +97,7 @@
             back.rotation.x = Math.PI / 2;
             back.parent = coin;
 
-            // Gentle auto-spin
+            // Auto-spin
             var spinSpeed = 0.4;
             scene.registerBeforeRender(function () {
                 if (!camera.inertialAlphaOffset && !camera.inertialBetaOffset && !camera.inertialRadiusOffset) {
