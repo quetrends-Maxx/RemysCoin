@@ -29,67 +29,85 @@
         </form>
     </div>
     <script type="text/javascript">
-        var canvas = document.getElementById("renderCanvas");
-        var engine = new BABYLON.Engine(canvas, true);
+    var canvas = document.getElementById("renderCanvas");
+    var engine = new BABYLON.Engine(canvas, true);
 
-        function createScene() {
-            var scene = new BABYLON.Scene(engine);
-            
-            // HDR Lighting
-            var hdrTexture = new BABYLON.HDRCubeTexture("https://dl.polyhaven.org/file/ph-asset-lib/files/hdris/1k/studio_small_03_1k.hdr", scene, 128);
-            scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
-            scene.environmentIntensity = 1.2;  // Slightly brighter for gold shine
+    function createScene() {
+        var scene = new BABYLON.Scene(engine);
 
-            // Camera (allows interactive rotation around the coin)
-            var camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 5, BABYLON.Vector3.Zero(), scene);
-            camera.attachControl(canvas, true);
+        // Reliable environment (no CORS risk)
+        scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
+        scene.environmentIntensity = 1.2;
 
-            // Coin parent node
-            var coin = new BABYLON.TransformNode("coin", scene);
+        // Fallback light in case HDR doesn't give enough illumination
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 0.8;
 
-            // Side (cylinder without caps, high tessellation for smooth curves)
-            var side = BABYLON.MeshBuilder.CreateCylinder("side", {height: 0.1, diameter: 4, tessellation: 128, cap: BABYLON.Mesh.NO_CAP}, scene);
-            var sideMat = new BABYLON.PBRMaterial("sideMat", scene);
-            sideMat.albedoColor = new BABYLON.Color3(0.91, 0.75, 0.48); // Gold color (override with texture if available)
-            // Uncomment if you have edge_basecolor.png: sideMat.albedoTexture = new BABYLON.Texture("edge_basecolor.png", scene);
-            sideMat.metallic = 1.0;
-            sideMat.roughness = 0.1;
-            sideMat.bumpTexture = new BABYLON.Texture("edge_normal.png", scene); // For reeded edge grooves
-            sideMat.bumpTexture.level = 0.5; // Adjust depth of grooves (0-1)
-            side.material = sideMat;
-            side.parent = coin;
+        // Interactive camera
+        var camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 6, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+        camera.lowerRadiusLimit = 3;
+        camera.upperRadiusLimit = 12;
 
-            // Front face
-            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 2, tessellation: 128}, scene);
-            var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
-            frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
-            frontMat.metallic = 1.0;
-            frontMat.roughness = 0.2;
-            front.material = frontMat;
-            front.position.y = 0.05;
-            front.rotation.x = Math.PI / 2;
-            front.parent = coin;
+        // Coin group
+        var coin = new BABYLON.TransformNode("coin", scene);
 
-            // Back face (flip rotation if texture appears mirrored)
-            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 2, tessellation: 128}, scene);
-            var backMat = new BABYLON.PBRMaterial("backMat", scene);
-            backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
-            // If back texture is upside-down or mirrored, uncomment: backMat.albedoTexture.vScale = -1;
-            backMat.metallic = 1.0;
-            backMat.roughness = 0.2;
-            back.material = backMat;
-            back.position.y = -0.05;
-            back.rotation.x = Math.PI / 2;
-            back.parent = coin;
+        // Side (reeded edge)
+        var side = BABYLON.MeshBuilder.CreateCylinder("side", {height: 0.12, diameter: 4, tessellation: 128, cap: BABYLON.Mesh.NO_CAP}, scene);
+        var sideMat = new BABYLON.PBRMaterial("sideMat", scene);
+        sideMat.albedoColor = new BABYLON.Color3(0.91, 0.75, 0.48);
+        sideMat.metallic = 1.0;
+        sideMat.roughness = 0.12;
+        sideMat.bumpTexture = new BABYLON.Texture("edge_normal.png", scene);
+        sideMat.bumpTexture.level = 0.6;
+        side.material = sideMat;
+        side.parent = coin;
 
-            return scene;
-        }
+        // Front face (Lord Remys celebration side – adjust flip if this one is mirrored)
+        var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 2, tessellation: 128}, scene);
+        var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
+        frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);  // ← Capital F
+        frontMat.albedoTexture.uScale = -1;          // Flip horizontally to correct mirror/reverse
+        // frontMat.albedoTexture.vScale = -1;       // Uncomment if also upside-down
+        frontMat.metallic = 1.0;
+        frontMat.roughness = 0.18;
+        frontMat.backFaceCulling = false;            // Ensure visible from both sides
+        front.material = frontMat;
+        front.position.y = 0.06;
+        front.rotation.x = Math.PI / 2;
+        front.parent = coin;
 
-        var scene = createScene();
-        engine.runRenderLoop(function () { scene.render(); });
-        window.addEventListener("resize", function () { engine.resize(); });
-    </script>
+        // Back face (Olawale profile side – adjust flip here if needed)
+        var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 2, tessellation: 128}, scene);
+        var backMat = new BABYLON.PBRMaterial("backMat", scene);
+        backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);  // ← Capital B
+        backMat.albedoTexture.uScale = -1;           // Flip horizontally if mirrored/reversed
+        // backMat.albedoTexture.vScale = -1;        // Uncomment if upside-down
+        backMat.metallic = 1.0;
+        backMat.roughness = 0.18;
+        backMat.backFaceCulling = false;             // Critical: makes back visible
+        back.material = backMat;
+        back.position.y = -0.06;
+        back.rotation.x = Math.PI / 2;
+        back.parent = coin;
+
+        // Auto-spin (only when not interacting)
+        var spinSpeed = 0.4;
+        scene.registerBeforeRender(function () {
+            if (!camera.inertialAlphaOffset && !camera.inertialBetaOffset && !camera.inertialRadiusOffset) {
+                coin.rotation.y += BABYLON.Tools.ToRadians(spinSpeed) * engine.getDeltaTime() / 1000;
+            }
+        });
+
+        return scene;
+    }
+
+    var scene = createScene();
+    engine.runRenderLoop(function () { scene.render(); });
+    window.addEventListener("resize", function () { engine.resize(); });
+</script>
 </body>
 
 </htm
+
 
