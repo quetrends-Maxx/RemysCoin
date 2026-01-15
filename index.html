@@ -63,33 +63,34 @@
         side.material = sideMat;
         side.parent = coin;
 
-        // Front face (Lord Remys celebration side – adjust flip if this one is mirrored)
-        var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 2, tessellation: 128}, scene);
-        var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
-        frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);  // ← Capital F
-        frontMat.albedoTexture.uScale = -1;          // Flip horizontally to correct mirror/reverse
-        // frontMat.albedoTexture.vScale = -1;       // Uncomment if also upside-down
-        frontMat.metallic = 1.0;
-        frontMat.roughness = 0.18;
-        frontMat.backFaceCulling = false;            // Ensure visible from both sides
-        front.material = frontMat;
-        front.position.y = 0.06;
-        front.rotation.x = Math.PI / 2;
-        front.parent = coin;
+        // Front face (Lord Remys celebration side – assuming this is now correct without flip)
+var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 2, tessellation: 128}, scene);
+var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
+frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
+// Remove or comment out the flip if front now looks correct:
+// frontMat.albedoTexture.uScale = -1;     // ← Comment or delete this line
+// frontMat.albedoTexture.vScale = -1;     // Only if upside-down too
+frontMat.metallic = 1.0;
+frontMat.roughness = 0.18;
+frontMat.backFaceCulling = false;
+front.material = frontMat;
+front.position.y = 0.06;
+front.rotation.x = Math.PI / 2;
+front.parent = coin;
 
-        // Back face (Olawale profile side – adjust flip here if needed)
-        var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 2, tessellation: 128}, scene);
-        var backMat = new BABYLON.PBRMaterial("backMat", scene);
-        backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);  // ← Capital B
-        backMat.albedoTexture.uScale = -1;           // Flip horizontally if mirrored/reversed
-        // backMat.albedoTexture.vScale = -1;        // Uncomment if upside-down
-        backMat.metallic = 1.0;
-        backMat.roughness = 0.18;
-        backMat.backFaceCulling = false;             // Critical: makes back visible
-        back.material = backMat;
-        back.position.y = -0.06;
-        back.rotation.x = Math.PI / 2;
-        back.parent = coin;
+// Back face (Olawale profile side – flip here to correct reverse/mirror)
+var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 2, tessellation: 128}, scene);
+var backMat = new BABYLON.PBRMaterial("backMat", scene);
+backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
+backMat.albedoTexture.uScale = -1;           // ← This flips horizontally → fixes reversed text
+// backMat.albedoTexture.vScale = -1;        // Uncomment ONLY if text is also upside-down (vertical flip)
+backMat.metallic = 1.0;
+backMat.roughness = 0.18;
+backMat.backFaceCulling = false;
+back.material = backMat;
+back.position.y = -0.06;
+back.rotation.x = Math.PI / 2;
+back.parent = coin;
 
         // Auto-spin (only when not interacting)
         var spinSpeed = 0.4;
@@ -109,5 +110,6 @@
 </body>
 
 </htm
+
 
 
