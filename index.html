@@ -37,8 +37,8 @@
             
             // HDR Lighting
             var hdrTexture = new BABYLON.HDRCubeTexture("https://dl.polyhaven.org/file/ph-asset-lib/files/hdris/1k/studio_small_03_1k.hdr", scene, 128);
-            scene.environmentTexture = hdrTexture;
-            scene.environmentIntensity = 1.0;
+            scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
+            scene.environmentIntensity = 1.2;  // Slightly brighter for gold shine
 
             // Camera (allows interactive rotation around the coin)
             var camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 5, BABYLON.Vector3.Zero(), scene);
@@ -92,3 +92,4 @@
 </body>
 
 </htm
+
