@@ -34,19 +34,19 @@
         function createScene() {
             var scene = new BABYLON.Scene(engine);
 
-            // Your preferred lighting base - unchanged
+            // Base lighting unchanged
             scene.environmentTexture = new BABYLON.CubeTexture("https://assets.babylonjs.com/environments/studio.env", scene);
             scene.environmentIntensity = 1.8;
 
             var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0.5, -0.5, -1), scene);
             dirLight.intensity = 0.9;
-            dirLight.diffuse = new BABYLON.Color3(1, 0.98, 0.9); // Warm gold tint
+            dirLight.diffuse = new BABYLON.Color3(1, 0.98, 0.9);
             dirLight.specular = new BABYLON.Color3(0.6, 0.6, 0.6);
 
-            // Gentle back fill light to brighten upright back face (low intensity, opposite direction)
-            var backFill = new BABYLON.HemisphericLight("backFill", new BABYLON.Vector3(0, -1, 0), scene); // From below/opposite
-            backFill.intensity = 0.5; // Subtle - won't overpower front
-            backFill.diffuse = new BABYLON.Color3(1, 0.95, 0.85); // Warm fill
+            // NEW: Subtle back fill to brighten upright back face (opposite angle, low intensity)
+            var backFill = new BABYLON.DirectionalLight("backFill", new BABYLON.Vector3(-0.5, 0.5, 1), scene); // Aimed toward back
+            backFill.intensity = 0.6; // Gentle lift
+            backFill.diffuse = new BABYLON.Color3(1, 0.95, 0.85); // Warm
             backFill.specular = new BABYLON.Color3(0.3, 0.3, 0.3);
 
             // Camera
@@ -55,30 +55,30 @@
             camera.lowerRadiusLimit = 3;
             camera.upperRadiusLimit = 12;
 
-            // Coin container
+            // Coin
             var coin = new BABYLON.TransformNode("coin", scene);
 
-            // Reeded edge - stronger bump for visibility (vertical grooves)
+            // Reeded edge - try inverted bump + adjusted scaling for vertical grooves
             var side = BABYLON.MeshBuilder.CreateCylinder("side", {height: 0.12, diameter: 4, tessellation: 128, cap: BABYLON.Mesh.NO_CAP}, scene);
             var sideMat = new BABYLON.PBRMaterial("sideMat", scene);
             sideMat.albedoColor = new BABYLON.Color3(0.95, 0.80, 0.55);
             sideMat.metallic = 1.0;
             sideMat.roughness = 0.12;
-            sideMat.emissiveColor = new BABYLON.Color3(0.05, 0.04, 0.015); // Helps grooves catch light
+            sideMat.emissiveColor = new BABYLON.Color3(0.06, 0.05, 0.02); // Glow to make grooves visible
             sideMat.bumpTexture = new BABYLON.Texture("edge_normal.png", scene);
-            sideMat.bumpTexture.rotation = Math.PI / 2; // Try 0 or Math.PI if grooves look horizontal
-            sideMat.bumpTexture.uScale = 0.8;
-            sideMat.bumpTexture.vScale = 120; // Dense vertical ridges
-            sideMat.bumpTexture.level = 2.0; // Stronger effect - grooves should show now
+            sideMat.bumpTexture.rotation = 0; // Changed to 0 - test this first; try Math.PI / 2 or Math.PI if grooves wrong direction
+            sideMat.bumpTexture.uScale = 0.6; // Less repeat around circumference
+            sideMat.bumpTexture.vScale = 140; // Very dense along height for fine vertical ridges
+            sideMat.bumpTexture.level = -2.0; // Negative to invert bump (raised → depressed or vice versa - often fixes visibility)
             side.material = sideMat;
             side.parent = coin;
 
-            // Front face - tighter + gold fill to eliminate black borders
-            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.88, tessellation: 128}, scene);
+            // Front - tighter radius + stronger gold fill
+            var front = BABYLON.MeshBuilder.CreateDisc("front", {radius: 1.85, tessellation: 128}, scene);
             var frontMat = new BABYLON.PBRMaterial("frontMat", scene);
             frontMat.albedoTexture = new BABYLON.Texture("Front.png", scene);
             frontMat.albedoTexture.uScale = -1;
-            frontMat.albedoColor = new BABYLON.Color3(0.98, 0.85, 0.62); // Strong warm gold fallback
+            frontMat.albedoColor = new BABYLON.Color3(0.99, 0.87, 0.65); // Very strong warm gold fallback
             frontMat.metallic = 1.0;
             frontMat.roughness = 0.18;
             frontMat.backFaceCulling = false;
@@ -87,13 +87,13 @@
             front.rotation.x = Math.PI / 2;
             front.parent = coin;
 
-            // Back face - same fixes
-            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.88, tessellation: 128}, scene);
+            // Back - same
+            var back = BABYLON.MeshBuilder.CreateDisc("back", {radius: 1.85, tessellation: 128}, scene);
             var backMat = new BABYLON.PBRMaterial("backMat", scene);
             backMat.albedoTexture = new BABYLON.Texture("Back.png", scene);
             backMat.albedoTexture.uScale = -1;
             backMat.albedoTexture.vScale = -1;
-            backMat.albedoColor = new BABYLON.Color3(0.98, 0.85, 0.62); // Same gold fill
+            backMat.albedoColor = new BABYLON.Color3(0.99, 0.87, 0.65); // Strong gold fill
             backMat.metallic = 1.0;
             backMat.roughness = 0.18;
             backMat.backFaceCulling = false;
@@ -102,7 +102,7 @@
             back.rotation.x = Math.PI / 2;
             back.parent = coin;
 
-            // Auto-spin
+            // Spin
             var spinSpeed = 0.4;
             scene.registerBeforeRender(function () {
                 if (!camera.inertialAlphaOffset && !camera.inertialBetaOffset && !camera.inertialRadiusOffset) {
